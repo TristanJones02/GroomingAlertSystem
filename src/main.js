@@ -5,8 +5,7 @@ const fs = require('fs');
 let mainWindow;
 let settings = {
   piAddress: '192.168.1.100',
-  piPort: 8080,
-  apiToken: ''
+  piPort: 8080
 };
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json');
@@ -84,33 +83,14 @@ ipcMain.handle('save-settings', (event, newSettings) => {
 ipcMain.handle('play-announcement', async (event, audioFile) => {
   const axios = require('axios');
   
-  if (!settings.apiToken) {
-    return {
-      success: false,
-      message: 'API token not configured. Please check settings.'
-    };
-  }
-  
   try {
     const response = await axios.post(
       `http://${settings.piAddress}:${settings.piPort}/play`,
       { audio: audioFile },
-      { 
-        timeout: 5000,
-        headers: {
-          'Authorization': `Bearer ${settings.apiToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
+      { timeout: 5000 }
     );
     return { success: true, message: 'Announcement sent successfully!' };
   } catch (error) {
-    if (error.response?.status === 401) {
-      return {
-        success: false,
-        message: 'Authentication failed. Please check your API token.'
-      };
-    }
     return { 
       success: false, 
       message: `Failed to send announcement: ${error.message}` 

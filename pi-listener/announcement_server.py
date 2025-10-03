@@ -15,7 +15,6 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 from collections import defaultdict, deque
-from auth import validate_token
 
 # Configuration
 PORT = 8080
@@ -96,17 +95,6 @@ class AnnouncementHandler(BaseHTTPRequestHandler):
             return
         
         if self.path == '/play':
-            # Check authentication
-            auth_header = self.headers.get('Authorization', '')
-            if not auth_header.startswith('Bearer '):
-                self.send_error_response(401, "Missing or invalid authorization header")
-                return
-            
-            token = auth_header[7:]  # Remove 'Bearer ' prefix
-            if not validate_token(token):
-                self.send_error_response(401, "Invalid token")
-                return
-            
             # Validate content length
             content_length = int(self.headers.get('Content-Length', 0))
             if content_length > MAX_CONTENT_LENGTH:
