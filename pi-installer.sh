@@ -2,11 +2,11 @@
 
 # Raspberry Pi Grooming Alert System Remote Installer
 # This script downloads and installs the announcement server from GitHub
-# Run with: curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/GroomingAlertSystem/main/pi-installer.sh | bash
+# Run with: curl -sSL https://raw.githubusercontent.com/TristanJones02/GroomingAlertSystem/main/pi-installer.sh | bash
 
 set -e  # Exit on any error
 
-REPO_URL="https://github.com/YOUR_USERNAME/GroomingAlertSystem.git"
+REPO_URL="https://github.com/TristanJones02/GroomingAlertSystem.git"
 INSTALL_DIR="$HOME/announcement-server"
 TEMP_DIR="/tmp/grooming-install-$(date +%s)"
 
@@ -210,8 +210,7 @@ EOF
 configure_application() {
     log "Configuring application..."
     
-    # Update the update-audio.sh script with the correct repository URL
-    sed -i "s|YOUR_USERNAME|$(echo $REPO_URL | grep -o '[^/]*\/[^/]*\.git' | sed 's|\.git||' | cut -d'/' -f1)|g" "$INSTALL_DIR/update-audio.sh"
+    # Repository URL is already set correctly in update-audio.sh
     
     # Generate API token
     log "Generating API token..."

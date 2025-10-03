@@ -3,7 +3,7 @@
 # Update audio files from GitHub repository
 # Run this script on the Raspberry Pi to pull latest audio files
 
-REPO_URL="https://github.com/YOUR_USERNAME/GroomingAlertSystem.git"
+REPO_URL="https://github.com/TristanJones02/GroomingAlertSystem.git"
 TEMP_DIR="/tmp/grooming-update"
 AUDIO_DIR="$HOME/announcement-server/audio"
 
