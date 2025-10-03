@@ -116,10 +116,6 @@ install_dependencies() {
         unzip \
         wget
     
-    # Install unattended-upgrades separately with pre-configured answers
-    echo 'unattended-upgrades unattended-upgrades/enable_auto_updates boolean true' | sudo debconf-set-selections
-    sudo apt-get install -y unattended-upgrades
-    
     success "Dependencies installed"
 }
 
@@ -149,8 +145,8 @@ logpath = /var/log/auth.log
 maxretry = 3
 EOF
     
-    # Enable automatic security updates (non-interactive)
-    sudo dpkg-reconfigure -f noninteractive unattended-upgrades
+    # Note: Automatic security updates removed to avoid interactive prompts
+    # Users can manually run: sudo apt update && sudo apt upgrade
     
     # Configure sysctl for network security
     sudo tee /etc/sysctl.d/99-security.conf > /dev/null <<EOF
