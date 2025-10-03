@@ -61,9 +61,33 @@ download_repository() {
     # Clean up any existing temp directory
     rm -rf "$TEMP_DIR"
     
-    # Clone repository
-    if ! git clone "$REPO_URL" "$TEMP_DIR"; then
-        error "Failed to clone repository. Please check the URL and your internet connection."
+    # Try downloading as zip file first (no auth required)
+    if command -v wget &> /dev/null; then
+        log "Downloading repository as ZIP file..."
+        wget -q "https://github.com/TristanJones02/GroomingAlertSystem/archive/refs/heads/main.zip" -O "/tmp/repo.zip"
+        if command -v unzip &> /dev/null; then
+            unzip -q "/tmp/repo.zip" -d "/tmp/"
+            mv "/tmp/GroomingAlertSystem-main" "$TEMP_DIR"
+            rm "/tmp/repo.zip"
+        else
+            error "unzip is required but not installed. Please install unzip first."
+        fi
+    elif command -v curl &> /dev/null; then
+        log "Downloading repository as ZIP file..."
+        curl -sL "https://github.com/TristanJones02/GroomingAlertSystem/archive/refs/heads/main.zip" -o "/tmp/repo.zip"
+        if command -v unzip &> /dev/null; then
+            unzip -q "/tmp/repo.zip" -d "/tmp/"
+            mv "/tmp/GroomingAlertSystem-main" "$TEMP_DIR"
+            rm "/tmp/repo.zip"
+        else
+            error "unzip is required but not installed. Please install unzip first."
+        fi
+    else
+        # Fallback to git clone
+        log "Fallback to git clone..."
+        if ! git clone "$REPO_URL" "$TEMP_DIR"; then
+            error "Failed to clone repository. Please check the URL and your internet connection."
+        fi
     fi
     
     # Verify required files exist
@@ -86,7 +110,9 @@ install_dependencies() {
         alsa-utils \
         ufw \
         fail2ban \
-        unattended-upgrades
+        unattended-upgrades \
+        unzip \
+        wget
     
     success "Dependencies installed"
 }
@@ -210,17 +236,16 @@ EOF
 configure_application() {
     log "Configuring application..."
     
-    # Repository URL is already set correctly in update-audio.sh
-    
-    # Generate API token
-    log "Generating API token..."
-    cd "$INSTALL_DIR"
-    API_TOKEN=$(python3 auth.py | grep "Generated API token:" | cut -d' ' -f4)
-    
-    # Pull audio files
+    # Copy audio files automatically
     if [ -d "$TEMP_DIR/assets/audio" ]; then
         log "Copying audio files..."
         cp "$TEMP_DIR/assets/audio"/*.mp3 "$INSTALL_DIR/audio/" 2>/dev/null || warn "No MP3 files found in repository"
+        
+        # List copied audio files
+        if ls "$INSTALL_DIR/audio"/*.mp3 1> /dev/null 2>&1; then
+            log "Audio files copied successfully:"
+            ls -la "$INSTALL_DIR/audio"/*.mp3
+        fi
     fi
     
     success "Application configured"
@@ -262,14 +287,12 @@ show_status() {
     echo "Audio files:"
     ls -la "$INSTALL_DIR/audio/" 2>/dev/null || echo "No audio files found"
     echo
-    echo "IMPORTANT - API Token:"
-    echo "API Token: $API_TOKEN"
-    echo "(Save this token - you'll need it in your Electron app settings)"
+    echo "Setup Complete! 🎉"
     echo
     echo "Next steps:"
-    echo "1. Configure your Electron app with this Pi's IP address and the API token above"
+    echo "1. Configure your Electron app with this Pi's IP address: $(hostname -I | awk '{print $1}')"
     echo "2. Test announcements from the Electron app"
-    echo "3. To update audio files: $INSTALL_DIR/update-audio.sh"
+    echo "3. To update audio files later: $INSTALL_DIR/update-audio.sh"
     echo "4. To view logs: sudo journalctl -u announcement-server -f"
     echo "5. To restart service: sudo systemctl restart announcement-server"
 }
