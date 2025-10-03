@@ -189,7 +189,7 @@ install_application() {
     # Create audio directory
     mkdir -p "$INSTALL_DIR/audio"
     
-    # Create systemd service with security restrictions
+    # Create systemd service (simplified to avoid permission issues)
     sudo tee /etc/systemd/system/announcement-server.service > /dev/null <<EOF
 [Unit]
 Description=Grooming Announcement Server
@@ -200,29 +200,15 @@ Wants=network-online.target
 Type=simple
 User=$USER
 Group=$USER
-WorkingDirectory=$INSTALL_DIR
 ExecStart=/usr/bin/python3 $INSTALL_DIR/announcement_server.py
 Restart=on-failure
 RestartSec=10
+StandardOutput=journal
+StandardError=journal
 
-# Security settings
+# Basic security settings
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=$INSTALL_DIR
-CapabilityBoundingSet=
-AmbientCapabilities=
-SystemCallFilter=@system-service
-SystemCallErrorNumber=EPERM
-SystemCallArchitectures=native
-
-# Network restrictions
-IPAddressDeny=any
-IPAddressAllow=localhost
-IPAddressAllow=10.0.0.0/8
-IPAddressAllow=172.16.0.0/12
-IPAddressAllow=192.168.0.0/16
 
 [Install]
 WantedBy=multi-user.target
