@@ -102,6 +102,9 @@ install_dependencies() {
     # Update package list
     sudo apt-get update
     
+    # Set non-interactive mode
+    export DEBIAN_FRONTEND=noninteractive
+    
     # Install required packages
     sudo apt-get install -y \
         python3 \
@@ -110,9 +113,12 @@ install_dependencies() {
         alsa-utils \
         ufw \
         fail2ban \
-        unattended-upgrades \
         unzip \
         wget
+    
+    # Install unattended-upgrades separately with pre-configured answers
+    echo 'unattended-upgrades unattended-upgrades/enable_auto_updates boolean true' | sudo debconf-set-selections
+    sudo apt-get install -y unattended-upgrades
     
     success "Dependencies installed"
 }
@@ -143,8 +149,8 @@ logpath = /var/log/auth.log
 maxretry = 3
 EOF
     
-    # Enable automatic security updates
-    sudo dpkg-reconfigure -plow unattended-upgrades
+    # Enable automatic security updates (non-interactive)
+    sudo dpkg-reconfigure -f noninteractive unattended-upgrades
     
     # Configure sysctl for network security
     sudo tee /etc/sysctl.d/99-security.conf > /dev/null <<EOF
